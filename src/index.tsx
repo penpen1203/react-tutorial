@@ -2,7 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
-function Square(props) {
+type SquareType = ("O" | "X" | null)[];
+
+interface SquareProps {
+  value: String | null;
+  onClick: () => void;
+  isHighlight: boolean;
+}
+
+function Square(props: SquareProps) {
   return (
     <button
       className={`square ${props.isHighlight ? "highlight" : ""}`}
@@ -13,8 +21,14 @@ function Square(props) {
   );
 }
 
-class Board extends React.Component {
-  renderSquare(i, isHighlight = false) {
+interface BoardProps {
+  squares: SquareType;
+  onClick: (i: number) => void;
+  highlightCells: number[];
+}
+
+class Board extends React.Component<BoardProps, {}> {
+  renderSquare(i: number, isHighlight: boolean = false) {
     return (
       <Square
         value={this.props.squares[i]}
@@ -29,12 +43,12 @@ class Board extends React.Component {
       <div>
         {Array(3)
           .fill(0)
-          .map((row, i) => {
+          .map((row, i: number) => {
             return (
               <div className="board-row" key={i}>
                 {Array(3)
                   .fill(0)
-                  .map((col, j) => {
+                  .map((col, j: number) => {
                     return this.renderSquare(
                       i * 3 + j,
                       this.props.highlightCells.indexOf(i * 3 + j) !== -1
@@ -48,20 +62,34 @@ class Board extends React.Component {
   }
 }
 
-class Game extends React.Component {
-  constructor(props) {
+interface HistoryData {
+  squares: ("O" | "X" | null)[];
+  col: number;
+  row: number;
+}
+
+interface GameState {
+  history: HistoryData[];
+  xIsNext: boolean;
+  stepNumber: number;
+}
+
+class Game extends React.Component<{}, GameState> {
+  constructor(props: BoardProps) {
     super(props);
     this.state = {
       history: [
         {
-          squares: Array(9).fill(null)
+          squares: Array(9).fill(null),
+          col: 0,
+          row: 0
         }
       ],
       stepNumber: 0,
       xIsNext: true
     };
   }
-  handleClick(i) {
+  handleClick(i: number) {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
@@ -81,7 +109,7 @@ class Game extends React.Component {
       xIsNext: !this.state.xIsNext
     });
   }
-  jumpTo(step) {
+  jumpTo(step: number) {
     this.setState({
       stepNumber: step,
       xIsNext: step % 2 === 0
@@ -137,7 +165,7 @@ class Game extends React.Component {
 
 ReactDOM.render(<Game />, document.getElementById("root"));
 
-function calculateWinner(squares) {
+function calculateWinner(squares: ("O" | "X" | null)[]) {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
