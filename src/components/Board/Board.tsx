@@ -2,15 +2,16 @@ import React from "react";
 
 import { Square } from "../Square";
 import { SquareType } from "../../application/types";
+import { Option } from "../../util/Option";
 
 export interface BoardProps {
-  squares: (SquareType | null)[];
+  squares: ReadonlyArray<Option<SquareType>>;
   onClick: (i: number) => void;
   highlightCells: number[];
 }
 
 export const renderSquare = (
-  squares: (SquareType | null)[],
+  squares: ReadonlyArray<Option<SquareType>>,
   onClick: (i: number) => void,
   i: number,
   isHighlight: boolean = false

@@ -1,7 +1,10 @@
 import React from "react";
 
+import { Option, toNullable } from "../../util/Option";
+import { pipe } from "../../util/pipe";
+
 export interface SquareProps {
-  value: String | null;
+  value: Option<string>;
   onClick: () => void;
   isHighlight: boolean;
 }
@@ -16,7 +19,7 @@ export const Square: React.FC<SquareProps> = ({
       className={`square ${isHighlight ? "highlight" : ""}`}
       onClick={onClick}
     >
-      {value}
+      {pipe(value, toNullable)}
     </button>
   );
 };

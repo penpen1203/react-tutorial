@@ -1,7 +1,8 @@
 import { SquareType } from "./types";
+import { none, Option } from "../util/Option";
 
 export interface HistoryData {
-  readonly squares: (SquareType | null)[];
+  readonly squares: ReadonlyArray<Option<SquareType>>;
   readonly col: number;
   readonly row: number;
 }
@@ -15,7 +16,7 @@ export interface State {
 export const initState: State = {
   history: [
     {
-      squares: Array(9).fill(null),
+      squares: Array(9).fill(none),
       col: 0,
       row: 0,
     },

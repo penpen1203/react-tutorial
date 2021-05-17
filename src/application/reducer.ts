@@ -1,6 +1,9 @@
 import { Action } from "./action";
 import { State } from "./state";
 import { SquareType } from "./types";
+import { Option, some } from "../util/Option";
+import { toSquareType } from "./functions";
+import { pipe } from "../util/pipe";
 
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
@@ -13,12 +16,12 @@ export const reducer = (state: State, action: Action): State => {
           {
             squares: currentSquares.reduce(
               (
-                acc: (SquareType | null)[],
-                cur,
-                index
-              ): (SquareType | null)[] => {
+                acc: ReadonlyArray<Option<SquareType>>,
+                cur: Option<SquareType>,
+                index: number
+              ): ReadonlyArray<Option<SquareType>> => {
                 return index === action.index
-                  ? [...acc, state.xIsNext ? "X" : "O"]
+                  ? [...acc, pipe(toSquareType(state.xIsNext), some)]
                   : [...acc, cur];
               },
               []

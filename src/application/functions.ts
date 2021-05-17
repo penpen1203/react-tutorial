@@ -1,9 +1,15 @@
-import { GameResult } from "./types";
+import { GameResult, SquareType } from "./types";
+import { Option, map, isSome, eq } from "../util/Option";
+import { pipe } from "../util/pipe";
+import { find } from "../util/ReadonlyArray";
+
+export const toSquareType = (xIsNext: boolean): SquareType =>
+  xIsNext ? "O" : "X";
 
 export const calculateWinner = (
-  squares: ("O" | "X" | null)[]
-): GameResult | null => {
-  const lines = [
+  squares: ReadonlyArray<Option<SquareType>>
+): Option<GameResult> => {
+  const lines: ReadonlyArray<ReadonlyArray<number>> = [
     [0, 1, 2],
     [3, 4, 5],
     [6, 7, 8],
@@ -14,14 +20,19 @@ export const calculateWinner = (
     [2, 4, 6],
   ];
 
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+  return pipe(
+    lines,
+    find(
+      ([a, b, c]) =>
+        pipe(squares[a], isSome) &&
+        pipe(squares[a], eq(squares[b])) &&
+        pipe(squares[a], eq(squares[c]))
+    ),
+    map(([a, b, c]) => {
       return {
         winner: squares[a],
         line: [a, b, c],
       };
-    }
-  }
-  return null;
+    })
+  );
 };

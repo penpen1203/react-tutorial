@@ -5,6 +5,9 @@ import { GameResult } from "../../application/types";
 import { Board } from "../Board";
 import { Action, jumpHistory, placeMark } from "../../application/action";
 import { HistoryData, State } from "../../application/state";
+import { fold, getOrElse, map, Option, toNullable } from "../../util/Option";
+import { pipe } from "../../util/pipe";
+import { toSquareType } from "../../application/functions";
 
 const renderGame = (state: State, dispatch: (action: Action) => void) => {
   return state.history.map((step, move) => {
@@ -26,32 +29,38 @@ const toDescription = (step: HistoryData, move: number): string =>
     ? "Go to move #" + move + "(" + step.col + "," + step.row + ")"
     : "Go to game start";
 
-const toStatus = (result: GameResult | null, state: State): string => {
-  if (result) {
-    return "Winner: " + result.winner;
-  } else {
-    return "Next player: " + (state.xIsNext ? "X" : "O");
-  }
+const toStatus = (maybeResult: Option<GameResult>, state: State): string => {
+  return pipe(
+    maybeResult,
+    fold({
+      onNone: () => "Next player: " + toSquareType(state.xIsNext),
+      onSome: (result) => "Winner: " + pipe(result.winner, toNullable),
+    })
+  );
 };
 
 export interface GameProps {
   state: State;
-  result: GameResult | null;
+  maybeResult: Option<GameResult>;
   dispatch: (action: Action) => void;
 }
 
-export const Game: React.FC<GameProps> = ({ state, result, dispatch }) => {
+export const Game: React.FC<GameProps> = ({ state, maybeResult, dispatch }) => {
   return (
     <div className="game">
       <div className="game-board">
         <Board
           squares={state.history[state.stepNumber].squares}
           onClick={(index) => dispatch(placeMark(index))}
-          highlightCells={result ? result.line : []}
+          highlightCells={pipe(
+            maybeResult,
+            map((result) => result.line),
+            getOrElse(() => [] as number[])
+          )}
         />
       </div>
       <div className="game-info">
-        <div>{toStatus(result, state)}</div>
+        <div>{toStatus(maybeResult, state)}</div>
         <ol>{renderGame(state, dispatch)}</ol>
       </div>
     </div>

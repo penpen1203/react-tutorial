@@ -11,5 +11,5 @@ export const GameContainer: React.FC = () => {
   const current = state.history[state.stepNumber];
   const result = calculateWinner(current.squares);
 
-  return <Game state={state} result={result} dispatch={dispatch} />;
+  return <Game state={state} maybeResult={result} dispatch={dispatch} />;
 };

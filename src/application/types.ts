@@ -1,6 +1,8 @@
+import { Option } from "../util/Option";
+
 export type SquareType = "O" | "X";
 
 export interface GameResult {
-  readonly winner: SquareType | null;
+  readonly winner: Option<SquareType>;
   readonly line: number[];
 }
