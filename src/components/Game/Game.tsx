@@ -1,70 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
 import "./Game.css";
 
-import { initState } from "../../initState";
-import { GameState, GameResult } from "../../types";
-import { Board } from "../../components/Board";
-import { calculateWinner } from "../../functions";
+import { GameResult } from "../../application/types";
+import { Board } from "../Board";
+import { Action, jumpHistory, placeMark } from "../../application/action";
+import { HistoryData, State } from "../../application/state";
 
-const handleClick = (
-  i: number,
-  state: GameState,
-  setState: React.Dispatch<React.SetStateAction<GameState>>
-) => {
-  const history = state.history.slice(0, state.stepNumber + 1);
-  const current = history[history.length - 1];
-  const squares = current.squares.slice();
-  if (calculateWinner(squares) || squares[i]) {
-    return;
-  }
-  squares[i] = state.xIsNext ? "X" : "O";
-  setState({
-    history: history.concat([
-      {
-        squares: squares,
-        col: (i % 3) + 1,
-        row: Math.floor(i / 3) + 1,
-      },
-    ]),
-    stepNumber: history.length,
-    xIsNext: !state.xIsNext,
-  });
-};
-
-const jumpTo = (
-  step: number,
-  state: GameState,
-  setState: React.Dispatch<React.SetStateAction<GameState>>
-) => {
-  setState({
-    ...state,
-    stepNumber: step,
-    xIsNext: step % 2 === 0,
-  });
-};
-
-const renderGame = (
-  state: GameState,
-  setState: React.Dispatch<React.SetStateAction<GameState>>
-) => {
+const renderGame = (state: State, dispatch: (action: Action) => void) => {
   return state.history.map((step, move) => {
-    const desc = move
-      ? "Go to move #" + move + "(" + step.col + "," + step.row + ")"
-      : "Go to game start";
     return (
       <li key={move}>
         <button
-          onClick={() => jumpTo(move, state, setState)}
+          onClick={() => dispatch(jumpHistory(move))}
           className={state.stepNumber === move ? "bold" : ""}
         >
-          {desc}
+          {toDescription(step, move)}
         </button>
       </li>
     );
   });
 };
 
-const toStatus = (result: GameResult | null, state: GameState): string => {
+const toDescription = (step: HistoryData, move: number): string =>
+  move
+    ? "Go to move #" + move + "(" + step.col + "," + step.row + ")"
+    : "Go to game start";
+
+const toStatus = (result: GameResult | null, state: State): string => {
   if (result) {
     return "Winner: " + result.winner;
   } else {
@@ -72,24 +34,25 @@ const toStatus = (result: GameResult | null, state: GameState): string => {
   }
 };
 
-export const Game: React.FC = () => {
-  const [state, setState] = useState(initState);
+export interface GameProps {
+  state: State;
+  result: GameResult | null;
+  dispatch: (action: Action) => void;
+}
 
-  const current = state.history[state.stepNumber];
-  const result = calculateWinner(current.squares);
-
+export const Game: React.FC<GameProps> = ({ state, result, dispatch }) => {
   return (
     <div className="game">
       <div className="game-board">
         <Board
-          squares={current.squares}
-          onClick={(i) => handleClick(i, state, setState)}
+          squares={state.history[state.stepNumber].squares}
+          onClick={(index) => dispatch(placeMark(index))}
           highlightCells={result ? result.line : []}
         />
       </div>
       <div className="game-info">
         <div>{toStatus(result, state)}</div>
-        <ol>{renderGame(state, setState)}</ol>
+        <ol>{renderGame(state, dispatch)}</ol>
       </div>
     </div>
   );
